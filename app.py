@@ -3,6 +3,7 @@ from utils.assinatura import AssinaturaCanvas
 from utils.formulario import FormularioRetirada
 from utils.gerador_pdf import GeradorPDF
 from utils.drive import upload_pdf_google_drive
+import io
 
 st.set_page_config(page_title="Coleta Transportadora", layout="centered")
 st.title("📦 Confirmação de Retirada de Pedido")
@@ -30,19 +31,19 @@ else:
                 # 👉 Upload para o Google Drive
                 link_drive = upload_pdf_google_drive(
                     pdf_bytes=pdf_stream, 
-                    nome_arquivo=f"comprovante_{dados['nota_fiscal']}.pdf"
+                    nome_arquivo=f"comprovante_{dados['pedido']}.pdf"
                 )
 
                 st.success("✅ PDF gerado e enviado para o Google Drive com sucesso!")
                 st.markdown(f"[📂 Ver no Google Drive]({link_drive})", unsafe_allow_html=True)
 
     
-            st.download_button(
-                label="⬇ Baixar Comprovante",
-                data=pdf_stream,
-                file_name=f"comprovante_{dados['pedido']}.pdf",
-                mime="application/pdf"
-                )
+                st.download_button(
+                    label="⬇ Baixar Comprovante",
+                    data=pdf_stream,
+                    file_name=f"comprovante_{dados['pedido']}.pdf",
+                    mime="application/pdf"
+                    )
 
     else:
         st.warning("✍️ Por favor, assine no campo acima.")

@@ -1,45 +1,80 @@
-import streamlit as st
-from google.ouath2 import service_account
-from googleapiclient.discovery import build
-from googleapiclient.http import MediaIoBaseUpload
-import io 
 import datetime
 import json
+import io
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaIoBaseUpload
+import streamlit as st
+
+
+# Carregar credenciais da conta de serviço
+SCOPES = ['https://www.googleapis.com/auth/drive.file']
 
 def upload_pdf_google_drive(pdf_bytes, nome_arquivo):
+
     info = json.loads(st.secrets["gcp"]["service_account"])
-    creds = service_account.Credentials.from_service_account_info(
-        info,
-        scopes=["https://www.googleapis.com/auth/drive"]
+    # Autentica
+    credentials = service_account.Credentials.from_service_account_info(
+        info, scopes=SCOPES)
+    service = build('drive', 'v3', credentials=credentials)
+
+    # ID do drive compartilhado
+    shared_drive_id = st.secrets["gcp"]["shared_drive_id"]  # Adiciona isso no secrets.toml
+
+    # ID da pasta raiz dentro do Shared Drive
+    pasta_raiz_id = st.secrets["gcp"]["pasta_id"]
+
+    data_str = datetime.datetime.now().strftime('%Y-%m-%d')
+
+    # Verifica se a pasta da data já existe
+    query = (
+        f"'{pasta_raiz_id}' in parents and name='{data_str}' and "
+        f"mimeType='application/vnd.google-apps.folder' and trashed=false"
     )
 
-    pasta_principal_id = st.secrets["gcp"]["pasta_id"]
+    results = service.files().list(
+        q=f"name='{data_str}' and mimeType='application/vnd.google-apps.folder' and trashed=false",
+        driveId=pasta_raiz_id,
+        corpora='drive',
+        includeItemsFromAllDrives=True,
+        supportsAllDrives=True,
+        fields='files(id, name)'
+    ).execute()
 
-    service = build("drive","v3", credentials=creds)
+    files = results.get('files', [])
 
-    data_hoje = datetime.datetime.now().strftime("%Y-%m-%d")
-    pasta_query = f"mimeType='application/vnd.google-apps.folder' and name='{data_hoje}' and '{pasta_principal_id}' in parents"
-    resposta = service.files().list(q=pasta_query, spaces="drive").execute()
-    pastas = resposta.get("files",[])
-
-    if pastas:
-        pasta_id = pastas[0]["id"]
+    if files:
+        pasta_data_id = files[0]['id']
     else:
-        pasta_metadata = {
-            "name": data_hoje,
-            "mimeType" : "application/vnd.google-apps.folder",
-            "parents" : [pasta_principal_id],
+        # Cria nova pasta dentro do Shared Drive
+        file_metadata = {
+            'name': data_str,
+            'mimeType': 'application/vnd.google-apps.folder',
+            'parents': [pasta_raiz_id],
+            'driveId': shared_drive_id
         }
-        pasta = service.files().create(body=pasta_metadata, fields = "id").execute()
-        pasta_id = pasta["id"]
+        folder = service.files().create(
+            body=file_metadata,
+            fields='id',
+            supportsAllDrives=True
+        ).execute()
+        pasta_data_id = folder.get('id')
 
-    media = MediaIoBaseUpload(io.BytesIO(pdf_bytes), mimetype="application/pdf")
-    file_metadata ={
-        "name": nome_arquivo,
-        "parents": [pasta_id],
+    # Upload do PDF para a pasta correta
+    media = MediaIoBaseUpload(pdf_bytes, mimetype='application/pdf')
+    file_metadata = {
+        'name': nome_arquivo,
+        'parents': [pasta_data_id],
+        'driveId': shared_drive_id,
+        'mimeType': 'application/pdf'
     }
 
-    file = service.files().create(body=file_metadata, media_body=media, fields="id").execute()
+    file = service.files().create(
+        body=file_metadata,
+        media_body=media,
+        fields='id, webViewLink',
+        supportsAllDrives=True
+    ).execute()
 
-    return f"https://drive.google.com/file/d/{file.get('id')}/view"
+    return file.get('webViewLink')
 
