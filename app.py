@@ -30,7 +30,7 @@ else:
                 # 👉 Upload para o Google Drive
                 link_drive = upload_pdf_google_drive(
                     pdf_bytes=pdf_stream, 
-                    nome_arquivo=f"comprovante_{dados['nota_fiscal']}.pdf"
+                    nome_arquivo=f"comprovante_{dados['pedido']}.pdf"
                 )
 
                 st.success("✅ PDF gerado e enviado para o Google Drive com sucesso!")
