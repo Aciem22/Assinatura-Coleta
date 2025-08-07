@@ -37,12 +37,12 @@ else:
                 st.markdown(f"[📂 Ver no Google Drive]({link_drive})", unsafe_allow_html=True)
 
     
-            st.download_button(
-                label="⬇ Baixar Comprovante",
-                data=pdf_stream,
-                file_name=f"comprovante_{dados['pedido']}.pdf",
-                mime="application/pdf"
-                )
+                st.download_button(
+                    label="⬇ Baixar Comprovante",
+                    data=pdf_stream,
+                    file_name=f"comprovante_{dados['pedido']}.pdf",
+                    mime="application/pdf"
+                    )
 
     else:
         st.warning("✍️ Por favor, assine no campo acima.")
