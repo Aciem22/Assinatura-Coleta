@@ -1,5 +1,5 @@
 import streamlit as st
-from google.ouath2 import service_account
+from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload
 import io 
