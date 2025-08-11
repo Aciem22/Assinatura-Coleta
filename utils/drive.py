@@ -24,7 +24,7 @@ def upload_pdf_google_drive(pdf_bytes, nome_arquivo):
     # ID da pasta raiz dentro do Shared Drive
     pasta_raiz_id = st.secrets["gcp"]["pasta_id"]
 
-    data_str = datetime.datetime.now().strftime('%d-%m-%Y')
+    data_str = datetime.datetime.now().strftime('%d/%m/%Y')
 
     results = service.files().list(
         q=f"'{pasta_raiz_id}' in parents and name='{data_str}' and mimeType='application/vnd.google-apps.folder' and trashed=false",
