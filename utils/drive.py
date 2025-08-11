@@ -24,16 +24,10 @@ def upload_pdf_google_drive(pdf_bytes, nome_arquivo):
     # ID da pasta raiz dentro do Shared Drive
     pasta_raiz_id = st.secrets["gcp"]["pasta_id"]
 
-    data_str = datetime.datetime.now().strftime('%Y-%m-%d')
-
-    # Verifica se a pasta da data já existe
-    query = (
-        f"'{pasta_raiz_id}' in parents and name='{data_str}' and "
-        f"mimeType='application/vnd.google-apps.folder' and trashed=false"
-    )
+    data_str = datetime.datetime.now().strftime('%d-%m-%Y')
 
     results = service.files().list(
-        q=f"name='{data_str}' and mimeType='application/vnd.google-apps.folder' and trashed=false",
+        q=f"'{pasta_raiz_id}' in parents and name='{data_str}' and mimeType='application/vnd.google-apps.folder' and trashed=false",
         driveId=pasta_raiz_id,
         corpora='drive',
         includeItemsFromAllDrives=True,
@@ -47,14 +41,14 @@ def upload_pdf_google_drive(pdf_bytes, nome_arquivo):
         pasta_data_id = files[0]['id']
     else:
         # Cria nova pasta dentro do Shared Drive
-        file_metadata = {
+        folder_metadata = {
             'name': data_str,
             'mimeType': 'application/vnd.google-apps.folder',
             'parents': [pasta_raiz_id],
             'driveId': shared_drive_id
         }
         folder = service.files().create(
-            body=file_metadata,
+            body=folder_metadata,
             fields='id',
             supportsAllDrives=True
         ).execute()
