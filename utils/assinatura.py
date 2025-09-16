@@ -10,8 +10,8 @@ class AssinaturaCanvas:
             stroke_width=2,
             stroke_color="#000000",
             background_color="#ffffff",
-            height=150,
-            width=400,
+            height=300,
+            width=800,
             drawing_mode="freedraw",
             key="canvas_assinatura"
         )
