@@ -46,12 +46,13 @@ class GeradorPDF:
         c.drawString(50, y-espacamento, f"Motorista: {self.dados['motorista']}")
         c.drawString(50, y - 2*espacamento, f"CPF:{self.dados['cpf']}")
         c.drawString(50, y-3*espacamento, f"Número da Nota: {self.dados['pedido']}")
-        c.drawString(50, y-4*espacamento, f"Data da Retirada: {self.dados['data'].strftime('%d/%m/%Y')}")
+        c.drawString(50, y-4*espacamento, f"Placa do veículo: {self.dados['placa']}")
+        c.drawString(50, y-5*espacamento, f"Data da Retirada: {self.dados['data']}")
 
         assinatura_path = "assinatura_temp.png"
         self.assinatura.save(assinatura_path)
-        c.drawImage(assinatura_path, 50, y-8*espacamento, width=200, height=60)
-        c.drawString(50, y-9*espacamento, "Assinatura")
+        c.drawImage(assinatura_path, 50, y-9*espacamento, width=200, height=60)
+        c.drawString(50, y-10*espacamento, "Assinatura")
 
         c.save()
         buffer.seek(0)
