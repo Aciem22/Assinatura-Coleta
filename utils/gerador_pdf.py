@@ -40,19 +40,30 @@ class GeradorPDF:
         # === Linha separadora ===
         y = altura -180
         espacamento = 20
+
+        pedidos = self.dados['pedido'].split(",")  
+
         
         c.setFont("Helvetica", 12)
         c.drawString(50, y, f"Transportadora: {self.dados['transportadora']}")
         c.drawString(50, y-espacamento, f"Motorista: {self.dados['motorista']}")
         c.drawString(50, y - 2*espacamento, f"CPF:{self.dados['cpf']}")
-        c.drawString(50, y-3*espacamento, f"Número da Nota: {self.dados['pedido']}")
-        c.drawString(50, y-4*espacamento, f"Placa do veículo: {self.dados['placa']}")
-        c.drawString(50, y-5*espacamento, f"Data da Retirada: {self.dados['data']}")
+
+        for i in range(0,len(pedidos),5):
+            bloco = pedidos[i:i+5]
+            linha = " | ".join(n.strip() for n in bloco)
+            if i == 0:  # primeira linha
+                c.drawString(50, y - 3*espacamento, f"Número da Nota: {linha}")
+            else:  # linhas seguintes
+                c.drawString(145, y - (3 + i//5)*espacamento, linha)  # desloca um pouco pra alinhar
+
+        c.drawString(50, y - (4 + len(pedidos)//5) * espacamento, f"Placa do veículo: {self.dados['placa']}")
+        c.drawString(50, y - (5 + len(pedidos)//5) * espacamento, f"Data da Retirada: {self.dados['data']}")
 
         assinatura_path = "assinatura_temp.png"
         self.assinatura.save(assinatura_path)
-        c.drawImage(assinatura_path, 50, y-9*espacamento, width=200, height=60)
-        c.drawString(50, y-10*espacamento, "Assinatura")
+        c.drawImage(assinatura_path, 50, y - (9 + len(pedidos)//5) * espacamento, width=200, height=60)
+        c.drawString(50, y - (10 + len(pedidos)//5) * espacamento, "Assinatura")
 
         c.save()
         buffer.seek(0)
