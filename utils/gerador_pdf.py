@@ -4,6 +4,7 @@ from reportlab.lib.units import mm
 from PIL import Image
 import io
 import os
+import re
 
 class GeradorPDF:
     def __init__(self, dados, assinatura_array,logo_path="img/logolenvie.png"):
@@ -41,9 +42,8 @@ class GeradorPDF:
         y = altura -180
         espacamento = 20
 
-        pedidos = self.dados['pedido'].split(",")  
+        pedidos = [p.strip() for p in re.split(r"[,\\-]", self.dados['pedido']) if p.strip()]
 
-        
         c.setFont("Helvetica", 12)
         c.drawString(50, y, f"Transportadora: {self.dados['transportadora']}")
         c.drawString(50, y-espacamento, f"Motorista: {self.dados['motorista']}")
