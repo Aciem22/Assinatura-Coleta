@@ -1,15 +1,17 @@
 import requests
 import json
+import time
+import streamlit as st
 
-appkey = "1724630275368"
-appsecret = "549a26b527f429912abf81f18570030e"
+APP_KEY = st.secrets["APP_KEY"]
+APP_SECRET = st.secrets["APP_SECRET"]
 
 def ConsultarNF(numeroNF):
     endpoint = "https://app.omie.com.br/api/v1/produtos/nfconsultar/"
     payload ={
         "call": "ConsultarNF",
-        "app_key": appkey,
-        "app_secret": appsecret,
+        "app_key": APP_KEY,
+        "app_secret": APP_SECRET,
         "param": [
             {
                 "tpNF":1,
@@ -19,30 +21,43 @@ def ConsultarNF(numeroNF):
     }
 
     try:
-        response = requests.post(endpoint,json=payload)
+        response = requests.post(endpoint,json=payload, timeout=15)
+        response.raise_for_status()
+
         resultado = response.json()
         #print("===== RETORNO DA API =====")
         #print(json.dumps(resultado, indent=2, ensure_ascii=False))
         #print("===========================")
 
+        if "faultstring" in resultado:
+            raise Exception(f"Erro API Omie {resultado['faultstring']}")
+
         idPedido = resultado.get("compl", {}).get("nIdPedido")
-        print (f"Código do Pedido: {idPedido}")
 
         if not idPedido:
             raise ValueError(f"Nota {numeroNF} não retornou o ID do pedido!")
-        
-        TrocarEtapa(idPedido)
+
+        print (f"Código do Pedido: {idPedido}")
+
+        time.sleep(0.5)
+
+        sucessso = TrocarEtapa(idPedido)
+
+        if not sucessso:
+            raise Exception(f"Falha ao trocar etapa do pedido{idPedido}")
         return True
 
     except Exception as e:
-        return f"Erro: {e}"  # devolve erro
+        print ("Erro em consultarNF:")
+        print(e)
+        return False  # devolve erro
     
 def TrocarEtapa(idPedido):
     endpointEtapa = "https://app.omie.com.br/api/v1/produtos/pedido/"
     payload={
         "call":"TrocarEtapaPedido",
-        "app_key": appkey,
-        "app_secret": appsecret,
+        "app_key": APP_KEY,
+        "app_secret": APP_SECRET,
         "param":[
             {
                 "codigo_pedido": idPedido,
@@ -52,15 +67,25 @@ def TrocarEtapa(idPedido):
     }
 
     try:
-        responseEtapa = requests.post(endpointEtapa,json=payload)
+        responseEtapa = requests.post(endpointEtapa,json=payload, timeout=15)
+        responseEtapa. raise_for_status()
+
         resultadoEtapa = responseEtapa.json()
+
+        if "faulstring" in resultadoEtapa:
+            raise Exception(f"Erro API Omie:{resultadoEtapa['faultstring']}")
+
         print("===== RETORNO DA API =====")
         print(json.dumps(resultadoEtapa, indent=2, ensure_ascii=False))
         print("===========================")
 
-    except Exception as e:
-        print("Erro na consulta:")
-        print(e)
+        print ("Etapa alterado com sucesso:", idPedido)
+        return True
 
-if __name__ == "__main__":
-    ConsultarNF(32195)
+    except Exception as e:
+        print(f"Erro na consulta:{idPedido}")
+        print(e)
+        return False
+
+##if __name__ == "__main__":
+##    ConsultarNF(32195)
